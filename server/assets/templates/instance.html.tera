@@ -1,0 +1,82 @@
+{% extends "base" %}
+{% block head %}
+    <script type="text/javascript">
+        var update_loop = setInterval(update, 1000);
+        var lines = [];
+        var shutdown = false;
+
+        function update_console_output() {
+            var request = new XMLHttpRequest();
+            var textarea = $("#console_out");
+
+            request.open("GET","/api/logs?id={{instance_id}}&from_line="+lines.length+"&t="+(new Date()).getTime());
+            request.addEventListener('load', function(event) {
+                if(shutdown) return;
+
+                var scroll = false;
+                if (request.status >= 200 && request.status < 300) {
+                    var response = JSON.parse(request.responseText);
+                    lines = lines.concat(response);
+                    scroll = response.length > 0;
+                }
+                else if (request.status == 410) {
+                    shutdown = true;
+                    lines.push("Server shut down.");
+                    console.info("Server shut down.");
+                    clearInterval(update_loop);
+                    scroll = true;
+                }
+                else {
+                    console.warn(request.statusText, request.responseText);
+                }
+                textarea.val(lines.join("\n"));
+                if(scroll)
+                    textarea.scrollTop(textarea[0].scrollHeight - textarea.height());
+            });
+
+            request.send();
+        }
+
+        function update_players() {
+            var request = new XMLHttpRequest();
+            var players_div = $("#players");
+
+            request.open("GET","/api/players?id={{instance_id}}&t="+(new Date()).getTime());
+            request.addEventListener('load', function(event) {
+                if(shutdown) return;
+                if (request.status >= 200 && request.status < 300) {
+                    players_div.empty();
+                    var response = JSON.parse(request.responseText);
+                    for (var player of response) {
+                        players_div.append("<li class='col-md-6'>" + player.name + " -> " + (player.hero || "selecting") + "</li>");
+                    }
+                }
+                else {
+                    console.warn(request.statusText, request.responseText);
+                }
+                textarea.val(lines.join("\n"));
+            });
+
+            request.send();
+        }
+
+        
+        function update() {
+            update_console_output();
+            update_players();
+        }
+    </script>
+{% endblock head %}
+{% block content %}
+    <p>
+        <h1>Instance started sucessfully.</h1>
+        Please connect using "open {% if instance_port == 7777 %}{{server_url}}{% else %}{{server_url}}:{{instance_port}}{% endif %}"
+    </p>
+    
+    <h1>Players:</h1>
+    <ul id="players" class="row">
+    </ul>
+    
+    <h1>Server output:</h1>
+    <textarea class="form-control" rows="20" id="console_out" readonly=""></textarea>
+{% endblock content %}

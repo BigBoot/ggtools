@@ -1,0 +1,8 @@
+/assets/qml/*.qmlc
+/target
+**/*.rs.bk
+*.bak
+/*.sled/
+.env
+config.json
+instances

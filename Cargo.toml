@@ -1,0 +1,45 @@
+[package]
+name = "rgcp"
+version = "1.0.1"
+authors = [""]
+edition = "2018"
+
+description = ""
+license = ""
+repository = ""
+
+build = "build.rs"
+default-run = "gcp"
+
+[[bin]]
+name = "gcp"
+path = "src/gcp.rs"
+required-features = ["rgcp_server"]
+
+[[bin]]
+name = "discord_bot"
+path = "src/discord_bot.rs"
+required-features = ["rgcp_discord_bot"]
+
+[[bin]]
+name = "patcher"
+path = "src/patcher.rs"
+required-features = ["rgcp_patcher"]
+
+[dependencies] 
+rgcp_common = { path = "common" }
+rgcp_server = { path = "server", optional = true }
+rgcp_discord_bot = { path = "discord_bot", optional = true }
+rgcp_patcher = { path = "patcher", optional = true }
+futures = "0.3"
+serde_json = { version = "1.0" }
+
+[build-dependencies]
+built = "0.3"
+
+[features]
+default = ["server", "patcher", "discord_bot"]
+server = ["rgcp_server"]
+discord_bot = ["rgcp_discord_bot"]
+patcher = ["rgcp_patcher"]
+

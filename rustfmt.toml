@@ -1,0 +1,15 @@
+# Stable rules
+max_width = 120
+use_small_heuristics = "Max"
+use_try_shorthand = true
+
+# Unstable rules
+unstable_features = true
+blank_lines_upper_bound = 2
+control_brace_style = "ClosingNextLine"
+imports_layout = "HorizontalVertical"
+match_block_trailing_comma = true
+inline_attribute_width = 50
+merge_imports = true
+overflow_delimited_expr = true
+reorder_impl_items = true
