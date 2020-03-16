@@ -31,8 +31,11 @@ jobs:
         toolchain: nightly
         default: true
       
-    - name: build
-      run: cargo build --release --no-default-features --features "server discord_bot"
+    - name: discord_bot
+      run: cargo build --release --no-default-features --features discord_bot
+      
+    - name: server
+      run: cargo build --release --no-default-features --features server
 
     - name: version
       id: version
