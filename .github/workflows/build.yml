@@ -1,0 +1,78 @@
+name: build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+
+    - name: info
+      id: info
+      shell: bash
+      run: |
+        echo "::set-output name=os::$(echo "${{ runner.os }}" | tr "[:upper:]" "[:lower:]")"
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          echo "::set-output name=ext::.exe"
+        else
+          echo "::set-output name=ext::"
+        fi
+        
+    - name: checkout
+      uses: actions/checkout@v1
+      
+    - name: setup rust toolchain
+      uses: actions-rs/toolchain@v1.0.3
+      with:
+        toolchain: nightly
+        default: true
+
+    - name: cache sccache
+      id: cache_sccache
+      uses: actions/cache@v1
+      with:
+        key: ${{ runner.os }}-sccache
+        path: .sccache
+
+    - name: install sccache
+      if: steps.cache_sccache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        cargo install sccache
+        mkdir .sccache
+        cp ${HOME}/.cargo/bin/sccache${{steps.info.outputs.ext}} .sccache/
+      
+    - name: build
+      run: cargo build --release
+
+    - name: version
+      id: version
+      shell: bash
+      run: |
+        echo "::set-output name=version::$(git describe --tags)"
+        if [ "$(git describe --tags --abbrev=0)" == "$(git describe --tags)" ]; then
+          echo "::set-output name=is_release::true"
+        else
+          echo "::set-output name=is_release::false"
+        fi
+    - name: copy artifacts
+      shell: bash
+      run: |
+        mkdir dist
+        for bin in fang gcp patcher; do 
+          cp target/release/${bin}${{steps.info.outputs.ext}} dist/${bin}-${{steps.info.outputs.os}}-${{ steps.version.outputs.version }}${{steps.info.outputs.ext}}
+        done
+    - name: upload Artifacts
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        name: ${{ steps.version.outputs.version }}
+        artifacts: dist/*
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit: ${{ github.sha }}
+        tag: ${{ steps.version.outputs.version }}
+        prerelease: ${{ steps.version.outputs.is_release != 'true' }}
