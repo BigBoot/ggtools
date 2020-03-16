@@ -49,7 +49,7 @@ jobs:
       shell: bash
       run: |
         mkdir dist
-        for bin in fang gcp; do 
+        for bin in discord_bot gcp; do 
           cp target/release/${bin}${{steps.info.outputs.ext}} dist/${bin}-${{steps.info.outputs.os}}-${{ steps.version.outputs.version }}${{steps.info.outputs.ext}}
         done
     - name: upload Artifacts
