@@ -32,7 +32,7 @@ jobs:
         default: true
       
     - name: build
-      run: cargo build --release --features "server discord_bot"
+      run: cargo build --release --no-default-features --features "server discord_bot"
 
     - name: version
       id: version
