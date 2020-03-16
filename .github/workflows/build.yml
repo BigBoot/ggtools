@@ -30,21 +30,6 @@ jobs:
       with:
         toolchain: nightly
         default: true
-
-    - name: cache sccache
-      id: cache_sccache
-      uses: actions/cache@v1
-      with:
-        key: ${{ runner.os }}-sccache
-        path: .sccache
-
-    - name: install sccache
-      if: steps.cache_sccache.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        cargo install sccache
-        mkdir .sccache
-        cp ${HOME}/.cargo/bin/sccache${{steps.info.outputs.ext}} .sccache/
       
     - name: build
       run: cargo build --release
@@ -59,6 +44,7 @@ jobs:
         else
           echo "::set-output name=is_release::false"
         fi
+        
     - name: copy artifacts
       shell: bash
       run: |
