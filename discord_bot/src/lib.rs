@@ -168,10 +168,8 @@ group!({
         remove_admin_user, 
         add_server, 
         remove_server,
-        admin_pw,
         set_notification_channel,
         disable_notifications,
-        kill,
     ],
 });
 
@@ -183,6 +181,8 @@ group!({
     commands: [
         start,
         list_servers,
+        admin_pw,
+        kill,
     ],
 });
 
