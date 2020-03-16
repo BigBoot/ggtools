@@ -32,7 +32,7 @@ jobs:
         default: true
       
     - name: build
-      run: cargo build --release
+      run: cargo build --release --features "server discord_bot"
 
     - name: version
       id: version
@@ -49,7 +49,7 @@ jobs:
       shell: bash
       run: |
         mkdir dist
-        for bin in fang gcp patcher; do 
+        for bin in fang gcp; do 
           cp target/release/${bin}${{steps.info.outputs.ext}} dist/${bin}-${{steps.info.outputs.os}}-${{ steps.version.outputs.version }}${{steps.info.outputs.ext}}
         done
     - name: upload Artifacts
