@@ -17,7 +17,7 @@ lazy_static! {
             }
         }
 
-        let template_refs = templates.iter().map(|(a, b)| (a as &str, b as &str)).collect();
+        let template_refs: Vec<(&str, &str)> = templates.iter().map(|(a, b)| (a as &str, b as &str)).collect();
         tera.add_raw_templates(template_refs).expect("Cannot add tera templates.");
 
         tera
