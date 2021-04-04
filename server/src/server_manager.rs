@@ -5,6 +5,8 @@ use rgcp_common::{config::Config, models::*};
 use serde::Serialize;
 use std::{env::current_dir, fs, path::PathBuf, time::SystemTime};
 
+use crate::mods::{get_mod, Mod};
+
 trait DBKey {
     fn db_key(&self, prefix: &str) -> Vec<u8>;
 }
@@ -78,11 +80,23 @@ impl ServerManager {
         (0..max_instances).filter(|x| self.is_locked(*x)).count()
     }
 
-    pub fn start_new_instance(&self, map: &str, creatures: &[String], max_players: usize) -> Option<InstanceID> {
+    pub fn start_new_instance(
+        &self,
+        map: &str,
+        creatures: &[String],
+        max_players: usize,
+        mod_id: &Option<String>,
+    ) -> Option<InstanceID> {
         let id = self.try_get_instance()?;
         let port = *self.config.server_port + id as u16;
-        self.generate_config_file(id, creatures, max_players);
-        self.run_instance(id, map, port);
+        let game_mod = mod_id.clone().and_then(|name| get_mod(&name).map_err(|e| log::error!("{}", e)).ok());
+
+        self.generate_game_config_file(id, &game_mod, creatures, max_players);
+        self.generate_engine_config_file(id, &game_mod);
+        self.generate_input_config_file(id, &game_mod);
+
+        let map_override = game_mod.and_then(|m| m.meta.map).unwrap_or_else(|| map.to_owned());
+        self.run_instance(id, &map_override, port);
 
         return Some(id);
     }
@@ -203,8 +217,12 @@ impl ServerManager {
         self.game_path().join("Binaries").join("Win64").join(binary)
     }
 
-    fn config_path(&self, config: &str) -> PathBuf {
-        self.game_path().join("RxGame").join("Config").join(config)
+    fn config_path(&self, config: &str, game_mod: &Option<Mod>) -> PathBuf {
+        game_mod
+            .clone()
+            .map(|game_mod| current_dir().unwrap().join("mods").join(&game_mod.id).join(config))
+            .filter(|file| file.exists())
+            .unwrap_or_else(|| self.game_path().join("RxGame").join("Config").join(config))
     }
 
     fn log_path(id: InstanceID) -> PathBuf {
@@ -260,14 +278,21 @@ impl ServerManager {
         }
     }
 
-    fn generate_config_file(&self, id: InstanceID, creatures: &[String], max_players: usize) {
+    fn generate_game_config_file(
+        &self,
+        id: InstanceID,
+        game_mod: &Option<Mod>,
+        creatures: &[String],
+        max_players: usize,
+    ) {
         lazy_static! {
             static ref RE_CREATURE: Regex = Regex::new(r#"DefaultMinionLoadout\[(\d+)]="\w*""#).unwrap();
             static ref RE_MAX_PLAYERS: Regex = Regex::new(r#"MaxPlayers=\d*"#).unwrap();
             static ref RE_ADMIN_PASSWORD: Regex = Regex::new(r#"AdminPassword=\w*"#).unwrap();
         }
 
-        let creature_details: Vec<rgcp_common::config::Creature> = creatures
+        let creature_override = game_mod.clone().and_then(|m| m.meta.creatures).unwrap_or_else(|| creatures.to_vec());
+        let creature_details: Vec<rgcp_common::config::Creature> = creature_override
             .iter()
             .filter_map(|id| {
                 self.config
@@ -279,9 +304,8 @@ impl ServerManager {
             })
             .collect();
 
-        let config_path = self.config_path("DefaultGame.ini");
-
-        let mut config = fs::read_to_string(config_path).unwrap();
+        let base = self.config_path("DefaultGame.ini", &game_mod);
+        let mut config = fs::read_to_string(base).unwrap();
 
         config = creature_details
             .iter()
@@ -300,8 +324,9 @@ impl ServerManager {
             })
             .to_owned();
 
+        let players_override = game_mod.clone().and_then(|m| m.meta.number_of_players).unwrap_or_else(|| max_players);
         config = RE_MAX_PLAYERS
-            .replace_all(&config, |_: &Captures| format!("MaxPlayers={}", max_players).to_owned())
+            .replace_all(&config, |_: &Captures| format!("MaxPlayers={}", players_override).to_owned())
             .into_owned();
 
         let admin_pw = thread_rng().sample_iter(&Alphanumeric).take(16).collect::<String>();
@@ -316,17 +341,31 @@ impl ServerManager {
         fs::write(self.instance_path(id).join("DefaultGame.ini"), config).unwrap();
     }
 
+    fn generate_engine_config_file(&self, id: InstanceID, game_mod: &Option<Mod>) {
+        let base = self.config_path("DefaultEngine.ini", &game_mod);
+        let config = fs::read_to_string(base).unwrap();
+        fs::write(self.instance_path(id).join("DefaultEngine.ini"), config).unwrap();
+    }
+
+    fn generate_input_config_file(&self, id: InstanceID, game_mod: &Option<Mod>) {
+        let base = self.config_path("DefaultEngine.ini", &game_mod);
+        let config = fs::read_to_string(base).unwrap();
+        fs::write(self.instance_path(id).join("DefaultInput.ini"), config).unwrap();
+    }
+
     fn run_instance(&self, id: InstanceID, map: &str, port: u16) {
         if Self::log_path(id).exists() {
             std::fs::remove_file(Self::log_path(id)).unwrap();
         }
 
         let process_handle = self.start_process(&format!(
-            "{} server {}?listen?port={} -dedicated -defgameini=\"{}\" -log=gcp_{}.log -forcelogflush",
+            "{} server {}?listen?port={} -dedicated -defgameini=\"{}\" -defengineini=\"{}\" -definputini=\"{}\" -log=gcp_{}.log -forcelogflush",
             self.binary_path("RxGame-Win64-Test.exe").to_string_lossy(),
             map,
             port,
             self.instance_path(id).join("DefaultGame.ini").to_string_lossy(),
+            self.instance_path(id).join("DefaultEngine.ini").to_string_lossy(),
+            self.instance_path(id).join("DefaultInput.ini").to_string_lossy(),
             id
         ));
 

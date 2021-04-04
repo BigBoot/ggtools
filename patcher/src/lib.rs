@@ -1,10 +1,12 @@
 use iced::{
     button,
-    settings::Window,
+    executor,
+    window::Settings as Window,
     text_input,
     Align,
     Application,
     Button,
+    Clipboard,
     Checkbox,
     Color,
     Column,
@@ -34,7 +36,7 @@ impl<T: std::fmt::Display> From<T> for PatchError {
 pub type PatchResult = ::std::result::Result<(), PatchError>;
 
 #[derive(Default)]
-struct Counter {
+struct Patcher {
     target_path: String,
     patches: Vec<(Patch, bool)>,
     status_msg: String,
@@ -65,7 +67,7 @@ impl Patch {
     }
 }
 
-impl Counter {
+impl Patcher {
     fn set_status(&mut self, msg: &str, color: Color) {
         self.status_msg = msg.to_owned();
         self.status_color = [color.r, color.g, color.b, color.a];
@@ -117,10 +119,12 @@ impl Counter {
     }
 }
 
-impl Application for Counter {
+impl Application for Patcher {
+    type Executor = executor::Default;
     type Message = Message;
+    type Flags = ();
 
-    fn new() -> (Self, Command<Message>) {
+    fn new(_flags: ()) -> (Self, Command<Message>) {
         (
             Self {
                 patches: vec![(Patch::new("0gb", "Disable RAM check", include_bytes!("../patches/0gb.patch")), true)],
@@ -134,11 +138,11 @@ impl Application for Counter {
         String::from("Gigantic Patcher")
     }
 
-    fn update(&mut self, message: Message) -> Command<Message> {
+    fn update(&mut self, message: Message, _clipboard: &mut Clipboard) -> Command<Message> {
         match message {
             Message::BrowsePressed => {
                 let result = nfd::dialog().default_path(&self.target_path).filter("exe").open().unwrap_or_else(|e| {
-                    panic!(e);
+                    panic!("{}", e);
                 });
                 match result {
                     Response::Okay(file) => self.target_path = file,
@@ -209,9 +213,9 @@ impl Application for Counter {
     }
 }
 
-pub async fn run(_config: Config) {
-    Counter::run(Settings {
+pub fn run(_config: Config) {
+    Patcher::run(Settings {
         window: Window { size: (300, 200), resizable: false, ..Window::default() },
         ..Settings::default()
-    })
+    }).unwrap();
 }

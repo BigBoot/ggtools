@@ -1,4 +1,8 @@
-use crate::{server_manager::ServerManager, templates::TERA};
+use crate::{
+    mods::{get_mods, Mod},
+    server_manager::ServerManager,
+    templates::TERA,
+};
 use rgcp_common::{
     config::{Config, Creature, Map},
     AppInfo,
@@ -21,6 +25,7 @@ struct IndexContext {
     creatures: Vec<Creature>,
     maps: Vec<Map>,
     default_creatures: Vec<String>,
+    mods: Vec<Mod>,
 }
 
 #[get("/")]
@@ -33,6 +38,7 @@ pub fn get(config: State<Config>, server_manager: State<Arc<ServerManager>>) -> 
         creatures: config.creatures.get().clone(),
         maps: config.maps.get().clone(),
         default_creatures: config.default_creatures.get().clone(),
+        mods: get_mods(),
     };
 
     let html = TERA.render("index", &tera::Context::from_serialize(context).unwrap()).unwrap();
@@ -47,6 +53,7 @@ pub struct StartForm {
     creature0: String,
     creature1: String,
     creature2: String,
+    game_mod: String,
 }
 
 #[post("/start", data = "<form>")]
@@ -55,6 +62,10 @@ pub fn start(form: Form<StartForm>, server_manager: State<Arc<ServerManager>>) -
         &form.map,
         &[form.creature0.clone(), form.creature1.clone(), form.creature2.clone()],
         form.max_players,
+        &match form.game_mod.as_str() {
+            "" => None,
+            x => Some(x.to_owned()),
+        },
     ) {
         return Redirect::to(format!("/instance?id={}", id));
     }

@@ -1,6 +1,6 @@
 [package]
 name = "rgcp"
-version = "1.0.2"
+version = "1.1.0"
 authors = [""]
 edition = "2018"
 
@@ -17,11 +17,6 @@ path = "src/gcp.rs"
 required-features = ["rgcp_server"]
 
 [[bin]]
-name = "discord_bot"
-path = "src/discord_bot.rs"
-required-features = ["rgcp_discord_bot"]
-
-[[bin]]
 name = "patcher"
 path = "src/patcher.rs"
 required-features = ["rgcp_patcher"]
@@ -29,17 +24,15 @@ required-features = ["rgcp_patcher"]
 [dependencies] 
 rgcp_common = { path = "common" }
 rgcp_server = { path = "server", optional = true }
-rgcp_discord_bot = { path = "discord_bot", optional = true }
 rgcp_patcher = { path = "patcher", optional = true }
 futures = "0.3"
 serde_json = { version = "1.0" }
 
 [build-dependencies]
-built = "0.3"
+built = { version = "0.4.4", features = ["git2", "chrono"] }
 
 [features]
-default = ["server", "patcher", "discord_bot"]
+default = ["server", "rgcp_patcher"]
 server = ["rgcp_server"]
-discord_bot = ["rgcp_discord_bot"]
 patcher = ["rgcp_patcher"]
 

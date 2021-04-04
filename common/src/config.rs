@@ -56,22 +56,6 @@ pub struct Config {
     pub creatures: DefaultOption<Vec<Creature>>,
 
     #[serde(skip_serializing_if = "DefaultOption::is_default")]
-    #[serde(default = "default_api_port")]
-    pub api_port: DefaultOption<u16>,
-
-    #[serde(skip_serializing_if = "DefaultOption::is_default")]
-    #[serde(default = "default_database_uri")]
-    pub database_uri: DefaultOption<String>,
-
-    #[serde(skip_serializing_if = "DefaultOption::is_default")]
-    #[serde(default = "default_matchmaking_players")]
-    pub matchmaking_players: DefaultOption<usize>,
-
-    #[serde(skip_serializing_if = "DefaultOption::is_default")]
-    #[serde(default = "default_discord_token")]
-    pub discord_token: DefaultOption<Option<String>>,
-
-    #[serde(skip_serializing_if = "DefaultOption::is_default")]
     #[serde(default = "default_api_key")]
     pub api_key: DefaultOption<Option<String>>,
 }
@@ -231,22 +215,6 @@ fn default_creatures() -> DefaultOption<Vec<Creature>> {
 
 fn default_default_creatures() -> DefaultOption<Vec<String>> {
     return DefaultOption::with_default(vec!["bloomer".to_owned(), "cerb".to_owned(), "cyclops".to_owned()]);
-}
-
-fn default_api_port() -> DefaultOption<u16> {
-    return DefaultOption::with_default(8080);
-}
-
-fn default_database_uri() -> DefaultOption<String> {
-    return DefaultOption::with_default("mysql://localhost:3306/rapi".to_owned());
-}
-
-fn default_matchmaking_players() -> DefaultOption<usize> {
-    return DefaultOption::with_default(1);
-}
-
-fn default_discord_token() -> DefaultOption<Option<String>> {
-    return DefaultOption::with_default(None);
 }
 
 fn default_api_key() -> DefaultOption<Option<String>> {
