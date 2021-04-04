@@ -43,7 +43,7 @@ pub fn start(
         data.creature2.as_ref().unwrap_or(&config.default_creatures.get()[2]).to_owned(),
     ];
 
-    if let Some(instance_id) = server_manager.start_new_instance(&data.map, &creatures, data.max_players.unwrap_or(10))
+    if let Some(instance_id) = server_manager.start_new_instance(&data.map, &creatures, data.max_players.unwrap_or(10), &data.game_mod)
     {
         return Json(StartResponse {
             error: None,

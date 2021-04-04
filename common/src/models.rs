@@ -53,6 +53,7 @@ pub struct StartRequest {
     pub creature0: Option<String>,
     pub creature1: Option<String>,
     pub creature2: Option<String>,
+    pub game_mod: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

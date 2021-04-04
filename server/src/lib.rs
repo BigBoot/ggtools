@@ -6,6 +6,7 @@ mod embed_file;
 mod routes;
 mod server_manager;
 mod templates;
+mod mods;
 
 use crate::{assets::Assets, server_manager::ServerManager};
 use rgcp_common::{config::Config, AppInfo};

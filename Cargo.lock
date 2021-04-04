@@ -47,6 +47,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.40"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28b2cd92db5cbd74e8e5028f7e27dd7aa3090e89e4f2a197cc7c8dfb69c7063b"
+
+[[package]]
 name = "approx"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2670,7 +2676,7 @@ checksum = "24d5f089152e60f62d28b835fbff2cd2e8dc0baf1ac13343bef92ab7eed84548"
 
 [[package]]
 name = "rgcp"
-version = "1.0.2"
+version = "1.1.0"
 dependencies = [
  "built",
  "futures",
@@ -2705,9 +2711,12 @@ dependencies = [
 name = "rgcp_server"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "dirs 3.0.1",
  "futures",
+ "glob",
  "lazy_static",
+ "log 0.4.14",
  "rand 0.7.3",
  "regex",
  "rgcp_common",
@@ -2719,6 +2728,7 @@ dependencies = [
  "serde_json",
  "sled",
  "tera",
+ "toml 0.5.8",
  "winapi 0.3.9",
 ]
 
