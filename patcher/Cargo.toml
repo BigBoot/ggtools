@@ -5,10 +5,15 @@ authors = [""]
 edition = "2018"
 
 [dependencies]
-rgcp_common = { path = "../common" }
 directories = { version = "3.0.1" }
+chrono = { version = "0.4.19"}
 iced = { version = "0.3.0" }
+msgbox = { version = "0.6.0" }
 nfd = { version = "0.0.4" }
 qbsdiff = { version = "1.2" }
+rgcp_common = { path = "../common" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["wincon"] }
