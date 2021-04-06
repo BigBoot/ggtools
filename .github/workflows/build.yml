@@ -10,9 +10,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-16.04]
+        os: [windows-latest]
 
     steps:
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: info
         id: info
         shell: bash
@@ -36,6 +37,9 @@ jobs:
       - name: server
         run: cargo build --release --no-default-features --features server
 
+      - name: patcher
+        run: cargo build --release --no-default-features --features patcher
+
       - name: version
         id: version
         shell: bash
@@ -51,7 +55,7 @@ jobs:
         shell: bash
         run: |
           mkdir dist
-          for bin in gcp; do 
+          for bin in gcp patcher; do 
             cp target/release/${bin}${{steps.info.outputs.ext}} dist/${bin}-${{steps.info.outputs.os}}-${{ steps.version.outputs.version }}${{steps.info.outputs.ext}}
           done
       - name: upload Artifacts

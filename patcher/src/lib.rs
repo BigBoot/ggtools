@@ -128,6 +128,7 @@ impl Application for Patcher {
         (
             Self {
                 patches: vec![(Patch::new("0gb", "Disable RAM check", include_bytes!("../patches/0gb.patch")), true)],
+                patches: vec![(Patch::new("remote_set", "Enable set command", include_bytes!("../patches/remote_set.patch")), true)],
                 ..Self::default()
             },
             Command::none(),
