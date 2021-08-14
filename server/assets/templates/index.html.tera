@@ -59,8 +59,10 @@
                 </label>
             </div>
             {% endfor %}
+        {% else %}
+            <input type="hidden" name="game_mod" value="" >
         {% endif %}
-
+        
         <div class="form-row">
             {% if running_instances < max_instances %}
                 <input class="btn btn-primary" type="submit" value="Start server">
