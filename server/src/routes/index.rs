@@ -10,7 +10,7 @@ use rgcp_common::{
 use rocket::{
     get,
     post,
-    request::{Form, FromForm, State},
+    request::{LenientForm, FromForm, State},
     response::{content::Html, Redirect},
 };
 use serde::Serialize;
@@ -57,7 +57,7 @@ pub struct StartForm {
 }
 
 #[post("/start", data = "<form>")]
-pub fn start(form: Form<StartForm>, server_manager: State<Arc<ServerManager>>) -> Redirect {
+pub fn start(form: LenientForm<StartForm>, server_manager: State<Arc<ServerManager>>) -> Redirect {
     if let Some(id) = server_manager.start_new_instance(
         &form.map,
         &[form.creature0.clone(), form.creature1.clone(), form.creature2.clone()],
